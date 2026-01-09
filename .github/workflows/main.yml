@@ -21,15 +21,19 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev aidl
+          pip3 install --user --upgrade buildozer cython virtualenv
 
-      - name: Install Python Tools
+      - name: Fix Android SDK and Aidl Path
         run: |
-          # Cython ka stable version jo Android ke liye best hai
-          pip3 install --user --upgrade "Cython<3.0.0" buildozer virtualenv
+          # Build-tools install karna zaroori hai aidl ke liye
+          sudo apt-get install -y android-sdk-build-tools
+          # Buildozer ko batana ki aidl kahan hai
           export PATH=$PATH:$HOME/.local/bin
+          # Ensure aidl is accessible
+          sudo ln -sf /usr/bin/aidl /usr/lib/android-sdk/build-tools/30.0.3/aidl || true
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Buildozer ko direct run karenge
-          buildozer -v android debug
+          # Yes command se saare license automatically accept ho jayenge
+          yes | buildozer -v android debug
