@@ -17,29 +17,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          pip3 install --user --upgrade buildozer cython virtualenv
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev aidl
 
-      - name: Fix Aidl and Install Android Tools
+      - name: Install Python Tools
         run: |
-          # SDK tools setup
-          sudo apt-get install -y aidl
-          # Ensuring path is set for buildozer
+          # Cython ka stable version jo Android ke liye best hai
+          pip3 install --user --upgrade "Cython<3.0.0" buildozer virtualenv
           export PATH=$PATH:$HOME/.local/bin
 
-      - name: Build APK with Buildozer
+      - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # Force buildozer to accept licenses and download missing tools
-          yes | buildozer -v android debug
-        env:
-          ACCEPT_SDK_LICENSE: "True"
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-apk
-          path: bin/*.apk
+          # Buildozer ko direct run karenge
+          buildozer -v android debug
