@@ -1,8 +1,5 @@
 name: Build APK
-on: 
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   build:
@@ -17,14 +14,29 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev aidl
+          # Cython ka version fix kiya taaki build fail na ho
           pip3 install --user --upgrade "buildozer>=1.5.0" "Cython<3.0.0" virtualenv
+
+      - name: Fix Aidl Path
+        run: |
+          # SDK ki location set karna taaki aidl mil jaye
+          sudo mkdir -p /usr/lib/android-sdk/build-tools/31.0.0/
+          sudo ln -sf /usr/bin/aidl /usr/lib/android-sdk/build-tools/31.0.0/aidl
 
       - name: Build APK
         run: |
           export PATH=$PATH:$HOME/.local/bin
-          # 'yes' command hata kar seedha buildozer run karein
+          # No-input mode mein build chalana
           buildozer -v android debug
+        env:
+          ACCEPT_SDK_LICENSE: "True"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-apk
+          path: bin/*.apk
